@@ -67,3 +67,14 @@ In addition to the basic requirement of scanning a QR code, the project also inc
 - **Mobile Compatibility**: While the app works on desktop, enhancements can be made to optimize the experience on mobile devices.
 - **QR Code History**: A feature to save scanned QR code results for later reference.
 - **Multi-Code Scanning**: Scanning multiple QR codes in a single image.
+
+## Acknowledgments
+
+- **React.js**: For building the user interface.
+- **Babylon.js**: For rendering and interacting with 3D models.
+- **ZXing Library**: For QR code scanning and decoding.
+- **MariaDB**: For storing metadata and model data.
+- **Node.js & Express**: For backend server and API handling.
+
+Special thanks to the open-source community for their contributions.
+
