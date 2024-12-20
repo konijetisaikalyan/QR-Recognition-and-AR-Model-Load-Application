@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@zxing/library": "^0.21.3",
+    "axios": "^1.7.9",
+    "babylonjs": "^7.40.3",
+    "react-babylonjs": "^3.2.2"
+  }
+}
