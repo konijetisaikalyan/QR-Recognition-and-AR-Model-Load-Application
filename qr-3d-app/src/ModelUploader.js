@@ -1,67 +1,45 @@
 import React, { useState } from 'react';
+import QRCode from 'react-qr-code';
+import axios from 'axios';
 
 const ModelUploader = () => {
   const [file, setFile] = useState(null);
-  const [modelUrl, setModelUrl] = useState(null);
-  const [error, setError] = useState(null);
+  const [modelUrl, setModelUrl] = useState('');
+  const [qrCode, setQrCode] = useState('');
 
-  // Handle file upload
-  const handleFileUpload = (event) => {
-    const uploadedFile = event.target.files[0];
-
-    if (!uploadedFile) {
-      setError("No file selected");
-      return;
-    }
-
-    // Check file type (optional)
-    const fileType = uploadedFile.type;
-    if (!fileType.includes("model") && !fileType.includes("image")) {
-      setError("Invalid file type. Please upload a 3D model or an image.");
-      return;
-    }
-
-    setError(null); // Reset error if valid file
-
-    const reader = new FileReader();
-
-    // When file is loaded, update state
-    reader.onloadend = () => {
-      if (fileType.includes("model")) {
-        setModelUrl(reader.result); // Process 3D model
-      } else {
-        setModelUrl(null); // If it's an image, we can display it as image
-        setFile(reader.result); // Store image data URL
-      }
-    };
-
-    reader.readAsDataURL(uploadedFile);
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
   };
 
-  // Function to render 3D model (use a library like three.js or AR.js for this)
-  const render3DModel = () => {
-    // This is where you will render your 3D model using a library like three.js or AR.js
-    // For now, we will just display the model URL for reference.
-    return modelUrl ? (
-      <iframe
-        src={modelUrl}
-        title="3D Model"
-        width="100%"
-        height="500px"
-        frameBorder="0"
-      ></iframe>
-    ) : (
-      <p>No 3D model to display.</p>
-    );
+  const handleUpload = async () => {
+    const formData = new FormData();
+    formData.append('model', file);
+
+    try {
+      const response = await axios.post('http://localhost:8000/ar/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const modelId = response.data.modelId;
+      setModelUrl(`http://localhost:8000/ar/arinfo/${modelId}`);
+      setQrCode(`http://localhost:8000/ar/arinfo/${modelId}`);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    }
   };
 
   return (
-    <div className="model-uploader">
-      <h2>Upload Your Model or Image</h2>
-      <input type="file" onChange={handleFileUpload} />
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {file && !modelUrl && <img src={file} alt="Uploaded Preview" />}
-      {render3DModel()}
+    <div>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleUpload}>Upload 3D Model</button>
+      {qrCode && (
+        <div>
+          <h3>QR Code</h3>
+          <QRCode value={qrCode} />
+        </div>
+      )}
     </div>
   );
 };
