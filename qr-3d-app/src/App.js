@@ -1,105 +1,100 @@
-import React, { useState, useRef } from 'react';
-import { BrowserQRCodeReader } from '@zxing/library';
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import { QRCodeScanner } from 'react-qr-code-scanner';
+import { ModelViewer } from '@google/model-viewer';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const App = () => {
-  const [scannedData, setScannedData] = useState(''); // Store scanned data
-  const [loading, setLoading] = useState(false); // Track scanning status
-  const [isWebcam, setIsWebcam] = useState(false); // Track if webcam scanning is selected
-  const videoRef = useRef(null); // Reference to video element
+function App() {
+  const [scannedData, setScannedData] = useState(null);
+  const [modelUrl, setModelUrl] = useState(null);
+  const [isModelLoaded, setIsModelLoaded] = useState(false);
+  const [isScanning, setIsScanning] = useState(true);
 
-  // Function to start scanning with the webcam
-  const startScanner = () => {
-    setLoading(true); // Indicate that scanning has started
-    const codeReader = new BrowserQRCodeReader(); // Use BrowserQRCodeReader for QR scanning
-
-    // Start decoding the QR code from the default camera
-    codeReader.decodeFromVideoDevice(null, videoRef.current, (result, error) => {
-      if (result) {
-        setScannedData(result.getText()); // Update the state with the scanned QR data
-        setLoading(false); // Stop the loading spinner
-      }
-      if (error) {
-        console.error(error); // Log any errors
-      }
-    });
-  };
-
-  // Function to handle image upload and scanning
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0]; // Get the selected file
-    if (file) {
-      setLoading(true); // Indicate that scanning has started
-      const codeReader = new BrowserQRCodeReader(); // Use BrowserQRCodeReader for image scanning
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        const img = new Image();
-        img.src = reader.result;
-
-        img.onload = () => {
-          codeReader.decodeFromImage(img)
-            .then((result) => {
-              setScannedData(result.getText()); // Set the scanned QR data
-              setLoading(false); // Stop the loading spinner
-            })
-            .catch((error) => {
-              console.error('Error decoding the image: ', error);
-              setLoading(false); // Stop the loading spinner
-            });
-        };
-      };
-
-      reader.readAsDataURL(file); // Read the selected image file
+  const handleScan = (data) => {
+    if (data) {
+      setScannedData(data.text);
+      fetchModelInfo(data.text);
     }
   };
 
-  // Function to choose between webcam and file upload options
-  const chooseScannerMode = (mode) => {
-    setIsWebcam(mode === 'webcam'); // Set mode to webcam or file based on selection
-    setScannedData(''); // Reset scanned data
+  const handleError = (error) => {
+    console.error(error);
+    toast.error('Error scanning QR code');
+  };
+
+  // Fetch model info from API using the modelId in the QR code
+  const fetchModelInfo = async (modelId) => {
+    try {
+      const response = await fetch(`/arinfo/${modelId}`);
+      if (!response.ok) {
+        toast.error('Failed to fetch model data');
+        setIsModelLoaded(false);
+        return;
+      }
+      const modelData = await response.json();
+      if (modelData && modelData.modelUrl) {
+        setModelUrl(modelData.modelUrl);
+        setIsModelLoaded(true);
+      } else {
+        toast.error('Model data is not valid');
+        setIsModelLoaded(false);
+      }
+    } catch (error) {
+      console.error('Error fetching model info:', error);
+      toast.error('Error fetching model data');
+      setIsModelLoaded(false);
+    }
+  };
+
+  // Handle the touch event to trigger animation on the model
+  const handleModelTouch = () => {
+    if (isModelLoaded) {
+      document.querySelector('model-viewer').play();
+    }
   };
 
   return (
-    <div>
-      <h1>QR Code Scanner</h1>
+    <div className="App">
+      <h1>3D Model QR Code Scanner</h1>
 
-      {/* Option to choose between webcam and file upload */}
-      <div>
-        <button onClick={() => chooseScannerMode('webcam')} disabled={loading}>
-          Scan with Webcam
-        </button>
-        <button onClick={() => chooseScannerMode('file')} disabled={loading}>
-          Upload Image
-        </button>
+      <div className="scanner-container">
+        {isScanning ? (
+          <QRCodeScanner
+            onScan={handleScan}
+            onError={handleError}
+            style={{ width: '100%', height: '100%' }}
+          />
+        ) : (
+          <button onClick={() => setIsScanning(true)}>Restart Scanning</button>
+        )}
       </div>
 
-      {/* Conditionally render webcam scanning */}
-      {isWebcam && (
-        <div>
-          <button onClick={startScanner} disabled={loading}>
-            {loading ? 'Scanning...' : 'Start Webcam Scan'}
-          </button>
-          <video ref={videoRef} style={{ width: '100%' }} /> {/* Video element to show the camera feed */}
-        </div>
-      )}
-
-      {/* Conditionally render file upload option */}
-      {isWebcam === false && (
-        <div>
-          <input type="file" accept="image/*" onChange={handleImageUpload} disabled={loading} />
-          {/* Input to upload image files for scanning */}
-        </div>
-      )}
-
-      {/* Display the scanned QR data */}
       {scannedData && (
-        <div>
-          <h2>Scanned QR Data:</h2>
-          <p>{scannedData}</p>
+        <div className="model-container">
+          <h2>Scanned QR Code: {scannedData}</h2>
+          {isModelLoaded ? (
+            <div>
+              <model-viewer
+                src={modelUrl}
+                alt="3D model"
+                auto-rotate
+                camera-controls
+                onClick={handleModelTouch}
+                style={{ width: '100%', height: '500px' }}
+              />
+            </div>
+          ) : (
+            <p>Loading 3D model...</p>
+          )}
         </div>
       )}
+
+      <ToastContainer autoClose={2000} />
+
     </div>
   );
-};
+}
 
 export default App;
+
