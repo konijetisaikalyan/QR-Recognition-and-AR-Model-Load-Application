@@ -25,7 +25,7 @@ const ModelUploader = () => {
       return;
     }
 
-    setError(''); // Clear any previous errors
+    setError(''); // Clear any previous error
 
     // Create form data to send to the server
     const formData = new FormData();
