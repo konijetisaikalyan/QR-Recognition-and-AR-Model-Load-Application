@@ -17,7 +17,7 @@ const QRCodeScanner = () => {
     axios.post('/upload', formData).then((response) => {
       setQrCode(response.data.qrCode);
     });
-  };
+  } ;
 
   return (
     <div>
