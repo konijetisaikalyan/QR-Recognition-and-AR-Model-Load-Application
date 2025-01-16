@@ -23,7 +23,7 @@ function App() {
     toast.error('Error scanning QR code');
   };
 
-  // Fetch model info from API using the modelId in the QR code
+  // Fetch model info from API using modelId in the QR code
   const fetchModelInfo = async (modelId) => {
     try {
       const response = await fetch(`/arinfo/${modelId}`);
