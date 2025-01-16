@@ -26,7 +26,7 @@ This project is a QR Code Scanner web application built using React and the ZXin
 
    ```bash
    git clone https://github.com/konijetisaikalyan/QR-Recognition-and-AR-Model-Load-Application.git
-   cd QR-Recognition-and-AR-Model-Load-Application
+   cd QR-Recognition-and-AR-Model-Load-Applications
 2. **Navigate to the Project Directory:** Change into the project directory:
 
    ```bash
