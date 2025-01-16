@@ -28,7 +28,7 @@ const ModelUploader = () => {
     } catch (error) {
       console.error('Error uploading file:', error);
     }
-  };
+  } ;
 
   return (
     <div>
